@@ -3,7 +3,20 @@ import io
 import sys
 from pathlib import Path
 
-import pymupdf
+fitz_err = None
+try:
+    import pymupdf
+except Exception as exc:
+    pymupdf = None
+    fitz_err = exc
+
+plumb_err = None
+try:
+    import pdfplumber
+except ImportError as exc:
+    pdfplumber = None
+    plumb_err = exc
+
 import pytesseract
 from PIL import Image
 from tqdm import tqdm
@@ -91,7 +104,7 @@ def extractPage(page, num_col, use_ocr):
     """Trích xuất một trang theo chế độ."""
     if use_ocr:
         return ocrPage(page)
-    return extractBlocks(page, num_col)
+    return extractBlks(page, num_col)
 
 
 def ocrPage(page):
@@ -102,11 +115,27 @@ def ocrPage(page):
     return pytesseract.image_to_string(img, lang=OCR_LANG).strip()
 
 
-def extractBlocks(page, num_col):
+def extractBlks(page, num_col):
     """Trích xuất theo block và thứ tự cột."""
     blocks = page.get_text("blocks")
     texts = sortBlocks(blocks, num_col, page.rect.width)
     return "\n".join(texts).strip()
+
+
+def extractPlumb(page, num_col):
+    """Trích xuất trang bằng pdfplumber theo thứ tự cột."""
+    if num_col == 1:
+        return (page.extract_text() or "").strip()
+    text_parts = []
+    col_w = page.width / num_col
+    for col in range(num_col):
+        x0 = col * col_w
+        x1 = page.width if col == num_col - 1 else (col + 1) * col_w
+        crop = page.crop((x0, 0, x1, page.height), strict=False)
+        text = (crop.extract_text() or "").strip()
+        if text:
+            text_parts.append(text)
+    return "\n".join(text_parts)
 
 
 def sortBlocks(blocks, num_col, width):
@@ -132,9 +161,15 @@ def processPdf(pdf_path, in_path, out_arg, use_ocr, num_col, overwrite):
     if out_path.exists() and not overwrite:
         return None, out_path
     text_parts = []
-    with pymupdf.open(pdf_path) as doc:
-        for page in tqdm(doc, desc=pdf_path.name, unit="page", leave=False):
-            text_parts.append(extractPage(page, num_col, use_ocr))
+    if use_ocr or pymupdf is not None:
+        with pymupdf.open(pdf_path) as doc:
+            for page in tqdm(doc, desc=pdf_path.name, unit="page", leave=False):
+                text_parts.append(extractPage(page, num_col, use_ocr))
+    else:
+        with pdfplumber.open(pdf_path) as doc:
+            pages = tqdm(doc.pages, desc=pdf_path.name, unit="page", leave=False)
+            for page in pages:
+                text_parts.append(extractPlumb(page, num_col))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("\n\n".join(text_parts), encoding="utf-8")
     return out_path, out_path
@@ -149,7 +184,19 @@ def main():
         print(f"No PDF files found in: {in_path}")
         return 1
 
-    mode = "OCR" if args.ocr else "pymupdf"
+    if args.ocr and pymupdf is None:
+        print(f"Error: OCR requires PyMuPDF, but it cannot load: {fitz_err}")
+        return 1
+    if not args.ocr and pymupdf is None and pdfplumber is None:
+        print(f"Error: PyMuPDF cannot load ({fitz_err}); pdfplumber missing ({plumb_err})")
+        return 1
+
+    if args.ocr:
+        mode = "OCR (PyMuPDF)"
+    elif pymupdf is not None:
+        mode = "PyMuPDF"
+    else:
+        mode = "pdfplumber (PyMuPDF blocked/unavailable)"
     print(f"Input: {in_path}")
     print(f"PDF files: {len(pdfs)}")
     print(f"Number of columns: {args.columns}")
