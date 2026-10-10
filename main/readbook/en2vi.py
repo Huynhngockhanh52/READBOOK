@@ -81,7 +81,7 @@ class BackendResult:
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def readText(path: Path, encoding: str = "utf-8") -> str:

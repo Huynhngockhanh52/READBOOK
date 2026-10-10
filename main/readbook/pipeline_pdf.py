@@ -9,7 +9,10 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-import pdf_split
+try:
+    from pdf import pdf_split
+except ImportError:
+    from .pdf import pdf_split
 
 
 model_opts = ("gemini", "codex", "claude", "non-codex", "non-claude")
@@ -28,7 +31,7 @@ def setUtf8() -> None:
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def parseArgs(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -171,7 +174,7 @@ def runCmd(cmd: list[str], label: str, root: Path) -> None:
 def runSplit(
     args: argparse.Namespace, in_path: Path, part_dir: Path, root: Path
 ) -> None:
-    script = root / "main" / "pdf_split.py"
+    script = Path(__file__).resolve().parent / "pdf" / "pdf_split.py"
     cmd = [
         sys.executable,
         str(script),
@@ -190,7 +193,7 @@ def runSplit(
 def runPipe(
     args: argparse.Namespace, part_dir: Path, work_dir: Path, root: Path
 ) -> None:
-    script = root / "main" / "pipeline.py"
+    script = Path(__file__).resolve().with_name("pipeline.py")
     cmd = [
         sys.executable,
         str(script),

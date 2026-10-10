@@ -82,7 +82,7 @@ def setUtf8() -> None:
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[3]
 
 
 def parseArgs(argv: Sequence[str] | None = None) -> argparse.Namespace:

@@ -23,7 +23,7 @@ class PipeError(RuntimeError):
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def parseArgs(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -236,7 +236,7 @@ def runPdf(
     text_dir: Path,
     root: Path,
 ) -> None:
-    script = root / "main" / "book_pdf2text.py"
+    script = Path(__file__).resolve().parent / "pdf" / "book_pdf2text.py"
     cmd = [
         sys.executable,
         str(script),
@@ -260,7 +260,7 @@ def runTrans(
     tran_dir: Path,
     root: Path,
 ) -> None:
-    script = root / "main" / "en2vi.py"
+    script = Path(__file__).resolve().with_name("en2vi.py")
     cmd = [
         sys.executable,
         str(script),
@@ -295,7 +295,7 @@ def runDocx(
     root: Path,
 ) -> None:
     files = getMdFiles(tran_dir)
-    script = root / "main" / "md2docx.py"
+    script = Path(__file__).resolve().with_name("md2docx.py")
     print("\n=== Step 4/4: Markdown to DOCX ===")
     for i, path in enumerate(files, start=1):
         rel_dir = path.parent.relative_to(tran_dir)

@@ -16,9 +16,9 @@ from pathlib import Path
 from typing import Any, Sequence
 
 try:
-    import epub_split
+    from epub import epub_split
 except ImportError:
-    from . import epub_split
+    from .epub import epub_split
 
 
 MODEL_OPTS = ("gemini", "codex", "claude", "non-codex", "non-claude")
@@ -37,7 +37,7 @@ def setUtf8() -> None:
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def parseArgs(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -178,7 +178,7 @@ def runSplit(
     mani_path: Path,
     root: Path,
 ) -> None:
-    script = root / "main" / "epub_split.py"
+    script = Path(__file__).resolve().parent / "epub" / "epub_split.py"
     cmd = [
         sys.executable,
         str(script),
@@ -203,7 +203,7 @@ def runText(
     mani_path: Path,
     root: Path,
 ) -> None:
-    script = root / "main" / "book_epub2text.py"
+    script = Path(__file__).resolve().parent / "epub" / "book_epub2text.py"
     cmd = [
         sys.executable,
         str(script),
@@ -227,7 +227,7 @@ def runTrans(
     tran_dir: Path,
     root: Path,
 ) -> None:
-    script = root / "main" / "en2vi.py"
+    script = Path(__file__).resolve().with_name("en2vi.py")
     cmd = [
         sys.executable,
         str(script),
@@ -272,7 +272,7 @@ def runDocx(
     root: Path,
 ) -> None:
     files = getMdFiles(tran_dir)
-    script = root / "main" / "md2docx.py"
+    script = Path(__file__).resolve().with_name("md2docx.py")
     print("\n=== Stage 4/4: Markdown to DOCX ===")
     for idx, path in enumerate(files, start=1):
         rel_dir = path.parent.relative_to(tran_dir)

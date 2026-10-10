@@ -44,7 +44,7 @@ class FileJob:
 
 
 def getRoot() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parents[2]
 
 
 def needDeps() -> None:

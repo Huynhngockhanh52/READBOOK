@@ -1,0 +1,306 @@
+template: 
+    path_pptx: "./config/sample/base_book.pptx"
+    path_yaml: "./config/base_book.yaml"
+    desc: "Template sử dụng để tạo các bài giảng dựa trên sách giáo trình"
+    master: "BASE_BOOK"
+
+# ==========================================================
+# 1. KHAI BÁO CẤU TRÚC LAYOUT
+# ==========================================================
+
+layouts:
+    Background:
+        - TITLE
+        - TXT_CHAPTER
+    
+    01.tbcontent:
+        - TITLE
+        - TXT1
+        - TXT2
+        - TXT3
+        - TXT4
+        - TXT5
+        - TXT6
+        - TXT7
+        - TXT8
+        - TXT9
+        - TXT10
+        - TXT11
+        - TXT12
+    
+    01.tbcontent2:
+        - TITLE
+        - TXT1
+        - TXT2
+        - TXT3
+        - TXT4
+        - TXT5
+        - TXT6
+        - TXT7
+        - TXT8
+        - TXT9
+    
+    02.h1:
+        - TITLE
+        - TXT1
+
+    03.main_def:
+        - TITLE
+        - SUBTITLE
+        - TXT1
+    
+    03.main_non_subtitle:
+        - TITLE
+        - TXT1
+    
+    04.main2col:
+        - TITLE
+        - SUBTITLE
+        - TXT1
+        - TXT2
+
+    05.main_img:
+        - TITLE
+        - SUBTITLE
+        - TXT1
+        - IMG1
+
+    05.main_img2:
+        - TITLE
+        - SUBTITLE
+        - TXT1
+        - IMG1
+    
+    06.thamkhao:
+        - TITLE
+        - TXT1
+
+    06.thamkhao2:
+        - TITLE
+        - TXT1
+    
+    Title only:
+        - TITLE
+    
+    08.theend:
+        - TITLE
+        - TXT1
+    
+    08.theend2:
+        - TITLE
+        - SUBTITLE
+
+# ==========================================================
+# 2. HƯỚNG DẪN AGENT LỰA CHỌN LAYOUT
+# ==========================================================
+
+layout_rules:
+
+    _global:
+        rules:
+            - "Tên layout phải khớp chính xác với tên layout trong PowerPoint template"
+            - "Chỉ sử dụng các trường đã khai báo trong layouts."
+            - "Không thay đổi vị trí, kích thước hoặc bố cục của các thành phần."
+            - "Trường không có dữ liệu thì để trống, không tự tạo nội dung để lấp đầy."
+            - "Một slide chỉ sử dụng một layout."
+            - "Ưu tiên layout phù hợp nhất với cấu trúc nội dung."
+            - "Nếu nội dung quá nhiều cho một slide, chia thành nhiều slide thay vì nhồi nội dung."
+            - "Giữ nguyên thứ tự và quan hệ phân cấp của chương, mục và mục con trong tài liệu nguồn."
+            - "Không tự tạo thêm mục hoặc mục con không tồn tại trong nội dung nguồn."
+
+    _toc_rule:
+        purpose: "Quy tắc chia mục lục thành nhiều slide"
+
+        rules:
+            - "Mỗi slide mục lục chỉ sử dụng 01.tbcontent hoặc 01.tbcontent2"
+            - "Ưu tiên chia thành nhóm 4 mục trước, sau đó đến nhóm 3 mục"
+            - "Không tạo slide chỉ chứa 1 mục nếu có thể phân phối lại"
+
+        examples:
+            1: [1]
+            2: [2]
+            3: [3]
+            4: [4]
+            5: [3, 2]
+            6: [3, 3]
+            7: [4, 3]
+            8: [4, 4]
+            9: [3, 3, 3]
+            
+    Background:
+        purpose: "Slide mở đầu của mỗi chương"
+        use_when: "Luôn dùng làm slide đầu tiên của chương"
+
+        mapping:
+            TITLE: "Tên sách"
+            TXT_CHAPTER: "Tên chương"
+
+
+    01.tbcontent:
+        purpose: "Slide mục lục chứa tối đa 4 mục"
+        use_when: "Ưu tiên sử dụng để trình bày nhóm 4 mục"
+
+        item_structure:
+            fields:
+                - number
+                - title
+                - description
+
+            slots:
+                - [TXT1, TXT2, TXT3]
+                - [TXT4, TXT5, TXT6]
+                - [TXT7, TXT8, TXT9]
+                - [TXT10, TXT11, TXT12]
+
+        mapping:
+            number: "Số thứ tự mục"
+            title: "Tên mục"
+            description: "Mô tả ngắn gọn nội dung mục"
+
+        rules:
+            - "Mỗi mục sử dụng đúng 3 TXT liên tiếp"
+            - "Nếu chỉ còn 2 mục thì vẫn có thể sử dụng layout này"
+            - "Các slot không sử dụng phải để trống"
+            - "Không tự tạo nội dung để lấp đầy slot trống"
+
+
+    01.tbcontent2:
+        purpose: "Slide mục lục chứa tối đa 3 mục"
+        use_when: "Sử dụng để trình bày nhóm 3 mục hoặc phần còn lại sau khi đã ưu tiên nhóm 4"
+
+        item_structure:
+            fields:
+                - number
+                - title
+                - description
+
+            slots:
+                - [TXT1, TXT2, TXT3]
+                - [TXT4, TXT5, TXT6]
+                - [TXT7, TXT8, TXT9]
+
+        mapping:
+            number: "Số thứ tự mục"
+            title: "Tên mục"
+            description: "Mô tả ngắn gọn nội dung mục"
+
+        rules:
+            - "Layout chứa tối đa 3 mục"
+            - "Mỗi mục sử dụng đúng 3 TXT liên tiếp"
+            - "Dùng sau khi đã ưu tiên nhóm 4 mục"
+            - "Các slot không sử dụng phải để trống"
+            - "Không tự tạo nội dung để lấp đầy slot"
+
+
+    02.h1:
+        purpose: "Slide chuyển sang một mục lớn"
+        use_when: "Dùng khi bắt đầu một mục chính trong chương"
+
+        mapping:
+            TITLE: "Tên mục"
+            TXT1: "Số chỉ mục"
+
+
+    03.main_def:
+        purpose: "Slide nội dung mà mục đó có các mục con nhỏ hơn"
+        use_when: "Dùng khi mục đó được chia thành nhiều mục con nhỏ hơn, nội dung cần TITLE (tên mục) + SUBTITLE (tên mục con)"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            SUBTITLE: "Tên mục nhỏ hơn"
+            TXT1: "Nội dung chính"
+
+
+    03.main_non_subtitle:
+        purpose: "Slide nội dung mà mục đó không có các mục con nhỏ hơn"
+        use_when: "Dùng cho nội dung của mục hiện tại, không có các mục con nhỏ hơn"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            TXT1: "Nội dung chính"
+
+
+    04.main2col:
+        purpose: "Slide hai khối nội dung"
+        use_when: "Dùng khi nội dung có hai nhóm, hai khía cạnh hoặc cần so sánh"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            SUBTITLE: "Tên mục nhỏ hơn nếu có"
+            TXT1: "Khối nội dung thứ nhất"
+            TXT2: "Khối nội dung thứ hai"
+
+        optional:
+            - SUBTITLE
+
+
+    05.main_img:
+        purpose: "Slide nội dung kèm hình minh họa"
+        use_when: "Dùng khi hình ảnh là thành phần hỗ trợ cho nội dung"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            SUBTITLE: "Tên mục nhỏ hơn nếu có"
+            TXT1: "Nội dung giải thích"
+            IMG1: "Đường dẫn hình ảnh"
+
+        optional:
+            - SUBTITLE
+
+
+    05.main_img2:
+        purpose: "Biến thể slide nội dung kèm hình"
+        use_when: "Dùng tương tự 05.main_img nhưng theo bố cục thứ hai của template"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            SUBTITLE: "Tên mục nhỏ hơn nếu có"
+            TXT1: "Nội dung giải thích"
+            IMG1: "Đường dẫn hình ảnh"
+
+        optional:
+            - SUBTITLE
+
+
+    06.thamkhao:
+        purpose: "Slide tài liệu tham khảo"
+        use_when: "Dùng cho danh sách nguồn hoặc tài liệu tham khảo"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            TXT1: "Danh sách tài liệu"
+
+
+    06.thamkhao2:
+        purpose: "Biến thể slide tài liệu tham khảo"
+        use_when: "Dùng khi bố cục tham khảo thứ hai phù hợp hơn"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+            TXT1: "Danh sách tài liệu"
+
+
+    Title only:
+        purpose: "Slide chỉ có một tiêu đề"
+        use_when: "Chỉ sử dụng khi không cần nội dung bổ sung"
+
+        mapping:
+            TITLE: "Tên mục hiện tại"
+
+
+    08.theend:
+        purpose: "Slide kết thúc"
+        use_when: "Dùng ở cuối bài giảng"
+
+        mapping:
+            TITLE: "Thông điệp kết thúc"
+            TXT1: "Thông tin hoặc lời cảm ơn"
+
+
+    08.theend2:
+        purpose: "Slide kết thúc có subtitle"
+        use_when: "Dùng ở cuối bài giảng khi cần thêm một dòng phụ"
+
+        mapping:
+            TITLE: "Thông điệp kết thúc"
+            SUBTITLE: "Thông tin phụ"
