@@ -25,7 +25,7 @@ else:
 
 
 BLOCK_SEP = "=========="
-CHAR_LIMIT = 50_000
+CHAR_LIMIT = 120_000
 EPUB_NS = "http://www.idpf.org/2007/ops"
 BLOCK_TAGS = {
     "address",
@@ -269,9 +269,11 @@ def localName(tag: Any) -> str:
 
 
 def classNames(node: Any) -> set[str]:
+    # XML comments and processing instructions can return None even with a default.
+    classes = node.get("class") or ""
     return {
         name.casefold()
-        for name in re.split(r"\s+", node.get("class", "").strip())
+        for name in re.split(r"\s+", classes.strip())
         if name
     }
 

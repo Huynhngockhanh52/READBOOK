@@ -17,7 +17,7 @@ from typing import Sequence
 
 
 CONTENT_TAG = "{{MARKDOWN_CONTENT}}"
-CHAR_LIMIT = 125_000
+CHAR_LIMIT = 120_000
 SAFE_LIMIT = 120_000
 REQ_TIMEOUT = 1_800
 MODEL_OPTS = ("codex", "claude")

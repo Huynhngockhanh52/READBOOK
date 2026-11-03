@@ -15,7 +15,7 @@ block_sep = "=========="
 block_re = re.compile(r"(?m)^\s*={10,}\s*$")
 para_re = re.compile(r"(?:\r?\n)[ \t]*(?:\r?\n)+")
 model_opts = ("gemini", "codex", "claude", "non-codex", "non-claude")
-char_limit = 50_000
+char_limit = 120_000
 
 
 class PipeError(RuntimeError):

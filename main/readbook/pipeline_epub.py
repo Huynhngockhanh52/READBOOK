@@ -22,7 +22,7 @@ except ImportError:
 
 
 MODEL_OPTS = ("gemini", "codex", "claude", "non-codex", "non-claude")
-CHAR_LIMIT = 50_000
+CHAR_LIMIT = 120_000
 
 
 class PipeError(RuntimeError):

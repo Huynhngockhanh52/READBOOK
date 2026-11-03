@@ -79,11 +79,11 @@ Trước khi implement Codex/Claude backend, kiểm tra CLI thực tế bằng c
 
 Mỗi file `.txt` đã được chia thành các block bằng delimiter `===========`. Chương trình đọc file, tách thành các block, bỏ block rỗng và giữ nguyên thứ tự.
 
-Sau đó gom các block liên tiếp thành các translation session. Mỗi session có giới hạn tối đa khoảng `50_000` characters. Một session có thể chứa nhiều block miễn tổng kích thước không vượt giới hạn. Phải tính cả delimiter/newline dùng khi ghép block.
+Sau đó gom các block liên tiếp thành các translation session. Mỗi session có giới hạn tối đa khoảng `120_000` characters. Một session có thể chứa nhiều block miễn tổng kích thước không vượt giới hạn. Phải tính cả delimiter/newline dùng khi ghép block.
 
 Không được thay đổi thứ tự block để tối ưu kích thước session.
 
-Nếu một block riêng lẻ đã lớn hơn `50_000` characters thì không chia nhỏ block đó; đặt riêng block đó thành một session và log warning, sau đó tiếp tục xử lý các block còn lại.
+Nếu một block riêng lẻ đã lớn hơn `120_000` characters thì không chia nhỏ block đó; đặt riêng block đó thành một session và log warning, sau đó tiếp tục xử lý các block còn lại.
 
 Ví dụ nếu các block lần lượt có kích thước `12K`, `15K`, `17K`, `20K` thì có thể tạo session đầu gồm ba block đầu khoảng `44K`, session sau chứa block `20K`.
 
@@ -125,6 +125,6 @@ CLI tối thiểu hỗ trợ `-i/--input`, `-o/--output`, `-m/--model`, `--overw
 
 Chương trình cần xử lý UTF-8, sử dụng `pathlib` cho path, kiểm tra input/config cần thiết, xử lý lỗi subprocess/API rõ ràng và không log API token.
 
-Sau khi hoàn thành `./main/en2vi.py`, hãy kiểm tra syntax, chạy `--help`, đồng thời test logic chia session với các trường hợp dưới `50_000`, đúng `50_000`, vượt `50_000` và block riêng lẻ lớn hơn giới hạn.
+Sau khi hoàn thành `./main/en2vi.py`, hãy kiểm tra syntax, chạy `--help`, đồng thời test logic chia session với các trường hợp dưới `120_000`, đúng `120_000`, vượt `120_000` và block riêng lẻ lớn hơn giới hạn.
 
 Cuối cùng, báo cáo ngắn gọn các file đã tạo hoặc sửa, cách tổ chức chương trình, cách 5 model backend hoạt động và ví dụ command để chạy chương trình.

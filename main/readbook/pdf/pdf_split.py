@@ -118,23 +118,35 @@ def checkName(raw_text: Any, label: str) -> str:
     return raw_text
 
 
+def walkTree(node: dict[str, Any], base: list[str], flat_map: dict[str, str]) -> None:
+    for k, vs in node.items():
+        seg = checkName(k, "Khóa classification")
+        cur = base + [seg]
+        cur_key = "/".join(cur)
+        if isinstance(vs, dict):
+            if not vs:
+                raise SplitError(f"Nhóm rỗng: {cur_key!r}")
+            walkTree(vs, cur, flat_map)
+        elif isinstance(vs, list):
+            for n in vs:
+                if not isinstance(n, str) or not n:
+                    raise SplitError(f"Sách phải là chuỗi: {cur_key!r}")
+                if n in flat_map:
+                    raise SplitError(f"Sách {n!r} trùng: {flat_map[n]!r} và {cur_key!r}")
+                flat_map[n] = cur_key
+        else:
+            raise SplitError(f"Giá trị phải là list/dict: {cur_key!r}")
+
+
 def findClass(class_map: dict[str, Any], book_name: str) -> str:
-    matches: list[str] = []
-    near_names: list[str] = []
-    for raw_key, names in class_map.items():
-        class_key = checkName(raw_key, "Khóa classification")
-        if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
-            raise SplitError(f"classification[{class_key!r}] phải là list tên sách.")
-        if book_name in names:
-            matches.append(class_key)
-        near_names.extend(name for name in names if name.casefold() == book_name.casefold())
-    if len(matches) > 1:
-        keys = ", ".join(matches)
-        raise SplitError(f"Tên sách {book_name!r} thuộc nhiều nhóm: {keys}")
-    if matches:
-        return matches[0]
+    flat_map: dict[str, str] = {}
+    walkTree(class_map, [], flat_map)
+    match = flat_map.get(book_name)
+    if match is not None:
+        return match
+    near_names = [n for n in flat_map if n.casefold() == book_name.casefold()]
     if near_names:
-        expected = ", ".join(repr(name) for name in near_names)
+        expected = ", ".join(repr(n) for n in near_names)
         raise SplitError(
             f"Không khớp chính xác {book_name!r}; phép so sánh phân biệt hoa/thường. "
             f"Tên gần giống trong classification: {expected}"
@@ -151,7 +163,7 @@ def getOutDir(
     if out_arg is not None:
         return out_arg.expanduser().resolve()
     class_key = findClass(class_map, in_path.stem)
-    return (root / "data" / class_key / in_path.stem / "part").resolve()
+    return (root / "data" / Path(*class_key.split("/")) / in_path.stem / "part").resolve()
 
 
 def pickPlan(

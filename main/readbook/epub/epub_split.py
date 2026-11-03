@@ -272,32 +272,36 @@ def getNavMap(
 
     if nav_item is not None:
         nav_path = nav_item["path"]
-        root = parseXml(readMember(arc, nav_path, "EPUB nav"), nav_path)
-        toc_nav = None
-        for node in root.iter():
-            if localName(node.tag) != "nav":
-                continue
-            nav_type = node.get(f"{{{EPUB_NS}}}type", "")
-            if "toc" in nav_type.split():
-                toc_nav = node
-                break
-            if toc_nav is None:
-                toc_nav = node
-        if toc_nav is not None:
-            for node in toc_nav.iter():
-                if localName(node.tag) != "a" or not node.get("href"):
+        try:
+            root = parseXml(readMember(arc, nav_path, "EPUB nav"), nav_path)
+            toc_nav = None
+            for node in root.iter():
+                if localName(node.tag) != "nav":
                     continue
-                try:
-                    path, frag = resolveHref(nav_path, node.get("href"))
-                except SplitError:
-                    continue
-                title = nodeText(node)
-                if not title:
-                    continue
-                key = f"{path}#{frag}" if frag else path
-                nav_map.setdefault(key, title)
-                nav_map.setdefault(path, title)
-        return nav_map
+                nav_type = node.get(f"{{{EPUB_NS}}}type", "")
+                if "toc" in nav_type.split():
+                    toc_nav = node
+                    break
+                if toc_nav is None:
+                    toc_nav = node
+            if toc_nav is not None:
+                for node in toc_nav.iter():
+                    if localName(node.tag) != "a" or not node.get("href"):
+                        continue
+                    try:
+                        path, frag = resolveHref(nav_path, node.get("href"))
+                    except SplitError:
+                        continue
+                    title = nodeText(node)
+                    if not title:
+                        continue
+                    key = f"{path}#{frag}" if frag else path
+                    nav_map.setdefault(key, title)
+                    nav_map.setdefault(path, title)
+            if nav_map:
+                return nav_map
+        except SplitError:
+            pass
 
     ncx_item = items.get(toc_id or "")
     if ncx_item is None:
@@ -451,23 +455,35 @@ def cleanName(raw_text: Any, label: str) -> str:
     return value
 
 
+def walkTree(node: dict[str, Any], base: list[str], flat_map: dict[str, str]) -> None:
+    for k, vs in node.items():
+        seg = cleanName(k, "Khóa classification")
+        cur = base + [seg]
+        cur_key = "/".join(cur)
+        if isinstance(vs, dict):
+            if not vs:
+                raise SplitError(f"Nhóm rỗng: {cur_key!r}")
+            walkTree(vs, cur, flat_map)
+        elif isinstance(vs, list):
+            for n in vs:
+                if not isinstance(n, str) or not n:
+                    raise SplitError(f"Sách phải là chuỗi: {cur_key!r}")
+                if n in flat_map:
+                    raise SplitError(f"Sách {n!r} trùng: {flat_map[n]!r} và {cur_key!r}")
+                flat_map[n] = cur_key
+        else:
+            raise SplitError(f"Giá trị phải là list/dict: {cur_key!r}")
+
+
 def findClass(class_map: dict[str, Any], book_key: str) -> str:
-    matches: list[str] = []
-    near_names: list[str] = []
-    for raw_key, names in class_map.items():
-        class_key = cleanName(raw_key, "Khóa classification")
-        if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
-            raise SplitError(f"classification[{class_key!r}] phải là list tên sách.")
-        if book_key in names:
-            matches.append(class_key)
-        near_names.extend(name for name in names if name.casefold() == book_key.casefold())
-    if len(matches) > 1:
-        keys = ", ".join(matches)
-        raise SplitError(f"Tên sách {book_key!r} thuộc nhiều nhóm: {keys}")
-    if matches:
-        return matches[0]
+    flat_map: dict[str, str] = {}
+    walkTree(class_map, [], flat_map)
+    match = flat_map.get(book_key)
+    if match is not None:
+        return match
+    near_names = [n for n in flat_map if n.casefold() == book_key.casefold()]
     if near_names:
-        expected = ", ".join(repr(name) for name in near_names)
+        expected = ", ".join(repr(n) for n in near_names)
         raise SplitError(
             f"Không khớp chính xác {book_key!r}; so sánh phân biệt hoa/thường. "
             f"Tên gần giống trong classification: {expected}"
@@ -484,7 +500,7 @@ def getOutDir(
     if out_arg is not None:
         return out_arg.expanduser().resolve()
     class_key = findClass(class_map, in_path.stem)
-    return (root / "data" / class_key / in_path.stem / "part").resolve()
+    return (root / "data" / Path(*class_key.split("/")) / in_path.stem / "part").resolve()
 
 
 def pickPlan(plans: dict[str, Any], in_path: Path) -> tuple[str, dict[str, Any]]:

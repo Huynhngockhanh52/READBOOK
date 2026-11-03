@@ -6,7 +6,7 @@ Workflow
 - Translate one TXT file given as a positional argument, or every TXT file under
   ``-i/--input-dir``.
 - Split source text into blocks separated by a line containing at least ten '='.
-- Greedily group blocks into sessions capped at 50,000 characters. A single
+- Greedily group blocks into sessions capped at 120,000 characters. A single
   oversized block is kept as its own session and reported as a warning.
 - Append each translated session to ``*_vi.md`` so large books do not need to be
   kept in memory as one translated document.
@@ -48,7 +48,7 @@ from typing import Sequence
 
 logger = logging.getLogger("en2vi")
 
-sess_limit = 50_000
+sess_limit = 120_000
 req_timeout = 1_800
 block_sep = "=========="
 block_re = re.compile(r"(?m)^\s*={10,}\s*$")

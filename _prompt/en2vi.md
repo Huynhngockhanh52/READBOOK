@@ -556,7 +556,7 @@ Không assume các subprocess độc lập có conversation memory.
 Giới hạn chính:
 
 ```text
-50,000 characters / translation message
+120,000 characters / translation message
 ```
 
 xấp xỉ:
@@ -570,7 +570,7 @@ xấp xỉ:
 Khai báo thành constant rõ ràng, ví dụ:
 
 ```python
-MAX_SESSION_CHARS = 50_000
+MAX_SESSION_CHARS = 120_000
 ```
 
 hoặc tên phù hợp với `.claude/CLAUDE.md`.
@@ -637,7 +637,7 @@ Sau khi có danh sách blocks, gom các blocks liên tiếp thành các translat
 Mục tiêu:
 
 ```text
-mỗi session <= 50,000 chars
+mỗi session <= 120,000 chars
 ```
 
 trong trường hợp bình thường.
@@ -684,7 +684,7 @@ Không được reorder blocks để tối ưu packing.
 Nếu một block riêng lẻ lớn hơn:
 
 ```text
-50,000 chars
+120,000 chars
 ```
 
 thì **không tự cắt block đó thành các đoạn nhỏ một cách mù quáng**.
@@ -710,7 +710,7 @@ session_4 = block_7
 và log warning:
 
 ```text
-[WARN] Block 7 exceeds 50,000 characters and will be sent as a standalone session.
+[WARN] Block 7 exceeds 120,000 characters and will be sent as a standalone session.
 ```
 
 Sau đó tiếp tục grouping các block còn lại bình thường.
@@ -1334,13 +1334,13 @@ Không truyền prompt dài qua command-line argument nếu có nguy cơ:
 Đặc biệt cần chú ý với:
 
 ```text
-50,000 chars
+120,000 chars
 ```
 
 và:
 
 ```text
-prompt + 50,000 chars
+prompt + 120,000 chars
 ```
 
 Nếu Codex/Claude CLI hỗ trợ stdin thì ưu tiên stdin hoặc cơ chế input chính thức phù hợp.
@@ -1627,7 +1627,7 @@ Sau khi tạo `main.en2vi.py`, thực hiện ít nhất:
 1. syntax check;
 2. kiểm tra `--help`;
 3. test logic `splitBlocks()`;
-4. test session grouping quanh ngưỡng `50_000`;
+4. test session grouping quanh ngưỡng `120_000`;
 5. test oversized block;
 6. test output path derivation;
 7. test `--overwrite`;
@@ -1640,7 +1640,7 @@ Sau khi tạo `main.en2vi.py`, thực hiện ít nhất:
 
 ```text
 49,999 chars
-50,000 chars
+120,000 chars
 50,001 chars
 ```
 
@@ -1652,7 +1652,7 @@ session_current + delimiter + next_block
 
 vượt giới hạn.
 
-Phải tính delimiter/newline overhead khi grouping để session bình thường thực sự không vượt `50_000 chars`.
+Phải tính delimiter/newline overhead khi grouping để session bình thường thực sự không vượt `120_000 chars`.
 
 ---
 

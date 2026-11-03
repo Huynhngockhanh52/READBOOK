@@ -12,7 +12,7 @@ Bạn là Senior Python Developer. Hãy xây dựng chương trình Python tóm 
 
 Chương trình nhận một file Markdown hoặc thư mục chứa các file Markdown, chèn nội dung vào `{{MARKDOWN_CONTENT}}`, gửi prompt tới model qua `stdin`, lấy kết quả từ `stdout` và lưu thành file Markdown tóm tắt tương ứng.
 
-Nếu prompt vượt giới hạn 50,000 token, tự động chia nội dung theo Heading 2 (`##`), xử lý lần lượt và ghép lại thành một file hoàn chỉnh.
+Nếu prompt vượt giới hạn 120,000 ký tự, tự động chia nội dung theo Heading 2 (`##`), xử lý lần lượt và ghép lại thành một file hoàn chỉnh.
 
 ## CLI
 
